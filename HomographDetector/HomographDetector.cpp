@@ -115,7 +115,7 @@ string createCanonString(vector<string> path)
     
     cout << "The newly created Path: " << canonPath << endl;
     
-    return "canonPath";
+    return canonPath;
 }
 
 // checks if two strings are homograph paths
@@ -130,7 +130,10 @@ bool checkForHomograph(string firstPath, string secondPath)
     string firstPathCanon = createCanonString(firstPathVector);
     string secondPathCanon = createCanonString(secondPathVector);
     
-    if (firstPathCanon == secondPathCanon)
+    cout << "results from compare: " << firstPathCanon.compare(secondPathCanon) << endl;
+    cout << "string 1: " << firstPathCanon << endl;
+    cout << "string 2: " << secondPathCanon << endl;
+    if (firstPathCanon.compare(secondPathCanon) == 0)
     {
         return true;
     }
