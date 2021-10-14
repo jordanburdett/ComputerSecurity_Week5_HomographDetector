@@ -27,7 +27,6 @@ string getCurrentPath(stack<string>& pathVector)
         pathVector.push((*currentPathIter).generic_string());
     }
     
-    cout << currentPathString << endl;
     return currentPathString;
 }
 
@@ -47,15 +46,34 @@ vector<string> convertStringToPathVector(string path)
     stringstream stream(path);
     string parsed;
 
-    while (getline(stream, parsed, '/'))
+    // checking if it is unix or windows
+    if (path.find(":") != std::string::npos)
     {
-        // lots of error handling could work well here.... :)
-        if (parsed == "" || parsed == " ")
-            continue;
+        // we found a colon so it must be windows --- if there is a better way to check this please fix it! :)
+        while (getline(stream, parsed, '\\'))
+        {
+            // lots of error handling could work well here.... :)
+            if (parsed == "" || parsed == " ")
+                continue;
 
-        // add the parsed string to our vector
-        outputVector.push_back(parsed);
+            // add the parsed string to our vector
+            outputVector.push_back(parsed);
+        }
     }
+    else
+    {
+        while (getline(stream, parsed, '/'))
+        {
+            // lots of error handling could work well here.... :)
+            if (parsed == "" || parsed == " ")
+                continue;
+
+            // add the parsed string to our vector
+            outputVector.push_back(parsed);
+        }
+    }
+
+   
     
     return outputVector;
 }
@@ -83,6 +101,19 @@ string createCanonString(vector<string> path)
     
     for (vector<string>::iterator iter = path.begin(); iter != path.end(); iter++)
     {
+        // On the first run through we need to check if the entire path was given.
+        if (iter == path.begin())
+        {
+            bool foundColon = (*iter).find(":") != std::string::npos;
+
+            // if we are at the beginning of a path / - for unix C: - for windows we don't want a current working directory.
+            if (*iter == "/" || foundColon)
+            {
+                currentWorkingDirectory = stack<string>();
+            }
+        }
+
+
         // There is probably more special characters we need here in order to account for all the cases
         if (*iter == "..")
         {
@@ -109,11 +140,14 @@ string createCanonString(vector<string> path)
     
     while (!reversedStack.empty())
     {
+        if (reversedStack.top() == "/")
+        {
+            reversedStack.pop();
+            continue;
+        }
         canonPath = canonPath + "/" + reversedStack.top();
         reversedStack.pop();
     }
-    
-    cout << "The newly created Path: " << canonPath << endl;
     
     return canonPath;
 }
