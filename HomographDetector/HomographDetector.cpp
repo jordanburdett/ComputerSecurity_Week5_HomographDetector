@@ -6,11 +6,15 @@
 #include <iostream>
 #include <string>
 #include <filesystem>
+#include <vector>
+#include <sstream>
+#include <fstream>
+#include <stack>
 using namespace std;
 using namespace filesystem;
 
 // returns the full current working directory path.. Pass in a string vector to get each individual path element
-string getCurrentPath(vector<string>& pathVector)
+string getCurrentPath(stack<string>& pathVector)
 {
     // this uses the std::filesystem library to get the current working directory path
     path currentPath = current_path();
@@ -20,15 +24,15 @@ string getCurrentPath(vector<string>& pathVector)
 
     for (currentPathIter = currentPath.begin(); currentPathIter != currentPath.end(); currentPathIter++)
     {
-        pathVector.push_back((*currentPathIter).generic_string());
+        pathVector.push((*currentPathIter).generic_string());
     }
-
+    
     return currentPathString;
 }
 
 // displays a string vector for debugging purposes
 void displayStringVector(vector<string> stringVector)
-{ 
+{
     for (vector<string>::iterator iter = stringVector.begin(); iter != stringVector.end(); iter++)
     {
         cout << *iter << endl;
@@ -36,126 +40,156 @@ void displayStringVector(vector<string> stringVector)
 }
 
 // takes a string and converts it to a vector
-void convertStringToPathVector(string path, vector<string> & outputVector)
+// I think we need something in here that checks for the first character of the string if it is a '/' becuase the getline is removing all slashes it probably removes the first slash on linux/macos TODO
+vector<string> convertStringToPathVector(string path)
 {
+    vector<string> outputVector;
     stringstream stream(path);
     string parsed;
 
-    // we need to know what to split on... Probably just depends on the test cases we write.. 
-    // Typically we see directories with a backslash so /somepath/somefile.txt so if we write all of the tests like that it should work fine! :)
-    while (getline(stream, parsed, '/'))
+    // checking if it is unix or windows
+    if (path.find(":") != std::string::npos)
     {
-        // lots of error handling could work well here.... :)
-        if (parsed == "" || parsed == " ") 
-            continue;
+        // we found a colon so it must be windows --- if there is a better way to check this please fix it! :)
+        while (getline(stream, parsed, '\\'))
+        {
+            // lots of error handling could work well here.... :)
+            if (parsed == "" || parsed == " ")
+                continue;
 
-        // add the parsed string to our vector
-        outputVector.push_back(parsed);
+            // add the parsed string to our vector
+            outputVector.push_back(parsed);
+        }
     }
+    else
+    {
+        while (getline(stream, parsed, '/'))
+        {
+            // lots of error handling could work well here.... :)
+            if (parsed == "" || parsed == " ")
+                continue;
+
+            // add the parsed string to our vector
+            outputVector.push_back(parsed);
+        }
+    }
+
+   
+    
+    return outputVector;
 }
 
-/** find where the second path starts in the fullPath --
-*
-* examples
-*
-* secondPath: ./text.txt
-* firstElement: './'
-*
-* we should start at the end of the current working directory because we started with './'
-*
-*
-* secondPath: ../homograph/text.txt
-* firstElement: '../'
-*
-* we should start at the element before the end of the current working directory because '../'
-*
-* secondPath: /homograph/text.txt
-* firstElement: 'homograph'
-*
-* we need to find the directory /homograph in our full path vector and return the iterator there.
-*/
-// determines where the startingpoint is in the attempted homograph attack
-vector<string>::iterator determinePathStartingPoint(vector<string>& secondPathVector, vector<string>::iterator &secondPathVectorIter, vector<string>& fullPathVector)
+// creates a new stack reversed -- not entirely necessarily because we are just comparing strings to see if they are the same but is nice for testing
+stack<string> reverseStack(stack<string> stringStack)
 {
-    string firstElement = secondPathVector.front();
-
-    // not sure if this is all of the special cases we would need to look for
-    if (firstElement == ".")
+    stack<string> reversedStack;
+    
+    while(!stringStack.empty())
     {
-        secondPathVectorIter = ++secondPathVector.begin();
-        return --fullPathVector.end();
+        reversedStack.push(stringStack.top());
+        stringStack.pop();
     }
-    else if (firstElement == "..")
-    {
-        secondPathVectorIter = ++secondPathVector.begin();
-        return --(--fullPathVector.end());
-    }
+    
+    return reversedStack;
+}
 
-    // we didn't find a special case above so we need to find the position in the full path vector
-    for (vector<string>::iterator iter = fullPathVector.begin(); iter != fullPathVector.end(); iter++)
+// canonicilation function. Takes the vector<string> path and simplifies it as much as possible.
+string createCanonString(vector<string> path)
+{
+    // get current working directory
+    stack<string> currentWorkingDirectory; // I changed the vector here to a stack.
+    getCurrentPath(currentWorkingDirectory);
+    
+    for (vector<string>::iterator iter = path.begin(); iter != path.end(); iter++)
     {
-        if (*iter == firstElement)
+        // On the first run through we need to check if the entire path was given.
+        if (iter == path.begin())
         {
-            secondPathVectorIter = secondPathVector.begin();
-            return iter;
+            bool foundColon = (*iter).find(":") != std::string::npos;
+
+            // if we are at the beginning of a path / - for unix C: - for windows - we don't want a current working directory.
+            if (*iter == "/" || foundColon)
+            {
+                currentWorkingDirectory = stack<string>();
+            }
+        }
+
+
+        // There is probably more special characters we need here in order to account for all the cases
+        if (*iter == "..")
+        {
+            currentWorkingDirectory.pop();
+        }
+        else if (*iter == ".")
+        {
+            // do nothing
+            continue;
+        }
+        else if (*iter == "/")
+        {
+            continue;
+        }
+        else
+        {
+            currentWorkingDirectory.push(*iter);
         }
     }
     
+    stack<string> reversedStack = reverseStack(currentWorkingDirectory);
+    
+     string canonPath = "";
+    
+    while (!reversedStack.empty())
+    {
+        if (reversedStack.top() == "/")
+        {
+            reversedStack.pop();
+            continue;
+        }
 
-    return fullPathVector.end();
+        // this is the first iteration so we don't want a slash
+        if (canonPath == "")
+        {
+            canonPath += reversedStack.top();
+        }
+        else 
+        {
+            canonPath = canonPath + "/" + reversedStack.top();
+        }
+
+        reversedStack.pop();
+    }
+    
+    return canonPath;
 }
 
 // checks if two strings are homograph paths
 bool checkForHomograph(string firstPath, string secondPath)
 {
-    // get the current working directory
-    vector<string> fullPathVector;
-    string fullPath = getCurrentPath(fullPathVector);
-
-    // add the first path to the end of the currentPath vector
-    fullPathVector.push_back(firstPath);
-
-    vector<string> secondPathVector;
-    convertStringToPathVector(secondPath, secondPathVector);
-
+    // convert firstPath to vector
+    vector<string> firstPathVector = convertStringToPathVector(firstPath);
     
-    vector<string>::iterator iter;
-    vector<string>::iterator fullPathStartingIter = determinePathStartingPoint(secondPathVector, iter, fullPathVector);
+    // convert secondPath to vector
+    vector<string> secondPathVector = convertStringToPathVector(secondPath);
     
-
-    // we didn't find anything in the path so it must not be a homograph
-    if (fullPathStartingIter == fullPathVector.end())
-    {
-        return false;
-    }
-
-    // loop through our secondPathVector
-    for (; iter != secondPathVector.end(); iter++)
-    {  
-        if (*iter == "..")
-        {
-            fullPathStartingIter--;
-        }
-        else
-        { 
-            // check if it is equal
-            if (*fullPathStartingIter != *iter)
-            {
-                return false;
-            }
-
-            fullPathStartingIter++;
-        }
-    }
-
-    if (*--fullPathVector.end() == *--secondPathVector.end() && fullPathStartingIter == fullPathVector.end())
+    string firstPathCanon = createCanonString(firstPathVector);
+    string secondPathCanon = createCanonString(secondPathVector);
+    
+    cout << "results from compare: " << firstPathCanon.compare(secondPathCanon) << endl;
+    cout << "\nstring 1: " << firstPathCanon << endl;
+    cout << "string 2: " << secondPathCanon << endl;
+    if (firstPathCanon.compare(secondPathCanon) == 0)
     {
         return true;
     }
-
-    return false;
+    else
+    {
+        return false;
+    }
+    
 }
 
+// Main driver of the program
 int main()
 {
     string firstPath = "";
@@ -167,15 +201,14 @@ int main()
     cout << "Enter the second path" << endl;
     getline(cin, secondPath);
 
+    cout << "\n\n";
+
     if (checkForHomograph(firstPath, secondPath))
     {
-        cout << "The paths are homographs" << endl;
+        cout << "\nThe paths are homographs" << endl;
     }
     else
     {
-        cout << "The paths are not homographs" << endl;
+        cout << "\nThe paths are not homographs" << endl;
     }
 }
-
-
-
