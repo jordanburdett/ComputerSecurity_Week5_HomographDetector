@@ -40,6 +40,7 @@ void displayStringVector(vector<string> stringVector)
 }
 
 // takes a string and converts it to a vector
+// I think we need something in here that checks for the first character of the string if it is a '/' becuase the getline is removing all slashes it probably removes the first slash on linux/macos TODO
 vector<string> convertStringToPathVector(string path)
 {
     vector<string> outputVector;
@@ -106,7 +107,7 @@ string createCanonString(vector<string> path)
         {
             bool foundColon = (*iter).find(":") != std::string::npos;
 
-            // if we are at the beginning of a path / - for unix C: - for windows we don't want a current working directory.
+            // if we are at the beginning of a path / - for unix C: - for windows - we don't want a current working directory.
             if (*iter == "/" || foundColon)
             {
                 currentWorkingDirectory = stack<string>();
@@ -136,7 +137,7 @@ string createCanonString(vector<string> path)
     
     stack<string> reversedStack = reverseStack(currentWorkingDirectory);
     
-    string canonPath = "";
+     string canonPath = "";
     
     while (!reversedStack.empty())
     {
@@ -145,7 +146,17 @@ string createCanonString(vector<string> path)
             reversedStack.pop();
             continue;
         }
-        canonPath = canonPath + "/" + reversedStack.top();
+
+        // this is the first iteration so we don't want a slash
+        if (canonPath == "")
+        {
+            canonPath += reversedStack.top();
+        }
+        else 
+        {
+            canonPath = canonPath + "/" + reversedStack.top();
+        }
+
         reversedStack.pop();
     }
     
@@ -165,7 +176,7 @@ bool checkForHomograph(string firstPath, string secondPath)
     string secondPathCanon = createCanonString(secondPathVector);
     
     cout << "results from compare: " << firstPathCanon.compare(secondPathCanon) << endl;
-    cout << "string 1: " << firstPathCanon << endl;
+    cout << "\nstring 1: " << firstPathCanon << endl;
     cout << "string 2: " << secondPathCanon << endl;
     if (firstPathCanon.compare(secondPathCanon) == 0)
     {
@@ -190,12 +201,14 @@ int main()
     cout << "Enter the second path" << endl;
     getline(cin, secondPath);
 
+    cout << "\n\n";
+
     if (checkForHomograph(firstPath, secondPath))
     {
-        cout << "The paths are homographs" << endl;
+        cout << "\nThe paths are homographs" << endl;
     }
     else
     {
-        cout << "The paths are not homographs" << endl;
+        cout << "\nThe paths are not homographs" << endl;
     }
 }
