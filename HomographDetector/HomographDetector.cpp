@@ -1,7 +1,10 @@
-/****
+
+/*********************************************************************
 * Homograph detector
-* The user enters two file paths. The program then determines if they are homographs (the same filepath but look different)
-*********/
+* The user enters two file paths.
+* The program then determines if they are 
+* homographs (the same filepath but look different)
+*********************************************************************/
 
 #include <iostream>
 #include <string>
@@ -13,7 +16,11 @@
 using namespace std;
 using namespace filesystem;
 
-// returns the full current working directory path.. Pass in a string vector to get each individual path element
+
+/*********************************************************************
+* returns the full current working directory path.
+* Pass in a string vector to get each individual path element.
+*********************************************************************/
 string getCurrentPath(stack<string>& pathVector)
 {
     // this uses the std::filesystem library to get the current working directory path
@@ -30,7 +37,9 @@ string getCurrentPath(stack<string>& pathVector)
     return currentPathString;
 }
 
-// displays a string vector for debugging purposes
+/*********************************************************************
+* displays a string vector for debugging purposes.
+*********************************************************************/
 void displayStringVector(vector<string> stringVector)
 {
     for (vector<string>::iterator iter = stringVector.begin(); iter != stringVector.end(); iter++)
@@ -39,8 +48,9 @@ void displayStringVector(vector<string> stringVector)
     }
 }
 
-// takes a string and converts it to a vector
-// I think we need something in here that checks for the first character of the string if it is a '/' becuase the getline is removing all slashes it probably removes the first slash on linux/macos TODO
+/*********************************************************************
+* takes a string and converts it to a vector
+*********************************************************************/
 vector<string> convertStringToPathVector(string path)
 {
     vector<string> outputVector;
@@ -50,10 +60,9 @@ vector<string> convertStringToPathVector(string path)
     // checking if it is unix or windows
     if (path.find(":") != std::string::npos)
     {
-        // we found a colon so it must be windows --- if there is a better way to check this please fix it! :)
+        // we found a colon so it must be windows
         while (getline(stream, parsed, '\\'))
         {
-            // lots of error handling could work well here.... :)
             if (parsed == "" || parsed == " ")
                 continue;
 
@@ -65,7 +74,6 @@ vector<string> convertStringToPathVector(string path)
     {
         while (getline(stream, parsed, '/'))
         {
-            // lots of error handling could work well here.... :)
             if (parsed == "" || parsed == " ")
                 continue;
 
@@ -79,7 +87,12 @@ vector<string> convertStringToPathVector(string path)
     return outputVector;
 }
 
-// creates a new stack reversed -- not entirely necessarily because we are just comparing strings to see if they are the same but is nice for testing
+/*********************************************************************
+*   creates a new stack reversed not entirely necessarily
+*   because we are just comparing strings to see if they are the same 
+*   but is nice for testing
+*********************************************************************/
+
 stack<string> reverseStack(stack<string> stringStack)
 {
     stack<string> reversedStack;
@@ -93,12 +106,15 @@ stack<string> reverseStack(stack<string> stringStack)
     return reversedStack;
 }
 
-// canonicilation function. Takes the vector<string> path and simplifies it as much as possible.
+/*********************************************************************
+*   canonicilation function.
+*   Takes the vector<string> path and creates a canon string
+*********************************************************************/
 string createCanonString(vector<string> path)
 {
     // get current working directory
-    stack<string> currentWorkingDirectory; // I changed the vector here to a stack.
-    getCurrentPath(currentWorkingDirectory);
+    stack<string> currentWorkingDirectory; 
+    getCurrentPath(currentWorkingDirectory); // This comes back as a stack
     
     for (vector<string>::iterator iter = path.begin(); iter != path.end(); iter++)
     {
@@ -114,31 +130,30 @@ string createCanonString(vector<string> path)
             }
         }
 
-
-        // There is probably more special characters we need here in order to account for all the cases
-        if (*iter == "..")
+        if (*iter == "..") // ".." means to go back a directory -- so we pop
         {
             currentWorkingDirectory.pop();
         }
-        else if (*iter == ".")
+        else if (*iter == ".") // "." means current directory -- don't do anything
         {
             // do nothing
             continue;
         }
-        else if (*iter == "/")
+        else if (*iter == "/") // skip ove don't do anything
         {
             continue;
         }
         else
         {
-            currentWorkingDirectory.push(*iter);
+            currentWorkingDirectory.push(*iter); // If we got here that means we have folder or file -- add it to the stack     
         }
     }
     
-    stack<string> reversedStack = reverseStack(currentWorkingDirectory);
+    stack<string> reversedStack = reverseStack(currentWorkingDirectory); // this is just to make it more human readable
     
-     string canonPath = "";
+    string canonPath = "";
     
+    // add the '/' back into the path  
     while (!reversedStack.empty())
     {
         if (reversedStack.top() == "/")
@@ -163,7 +178,9 @@ string createCanonString(vector<string> path)
     return canonPath;
 }
 
-// checks if two strings are homograph paths
+/*********************************************************************
+*   checks if two strings are homograph paths.
+*********************************************************************/
 bool checkForHomograph(string firstPath, string secondPath)
 {
     // convert firstPath to vector
@@ -175,9 +192,11 @@ bool checkForHomograph(string firstPath, string secondPath)
     string firstPathCanon = createCanonString(firstPathVector);
     string secondPathCanon = createCanonString(secondPathVector);
     
-    cout << "results from compare: " << firstPathCanon.compare(secondPathCanon) << endl;
+    cout << "results from compare: " << firstPathCanon.compare(secondPathCanon) << endl; // 0 - strings match
+
     cout << "\nstring 1: " << firstPathCanon << endl;
     cout << "string 2: " << secondPathCanon << endl;
+
     if (firstPathCanon.compare(secondPathCanon) == 0)
     {
         return true;
@@ -189,19 +208,13 @@ bool checkForHomograph(string firstPath, string secondPath)
     
 }
 
-// Main driver of the program
-int main()
+/*********************************************************************
+*   first test case, an entire path.
+*********************************************************************/
+void fullPath()
 {
-    string firstPath = "";
-    string secondPath = "";
-
-    cout << "Enter the first path" << endl;
-    getline(cin, firstPath);
-
-    cout << "Enter the second path" << endl;
-    getline(cin, secondPath);
-
-    cout << "\n\n";
+    string firstPath = "test.txt";
+    string secondPath = "E:/ComputerSecurityCS453/CSecurityLabs/week5labStack/HomographDetector/test.txt";
 
     if (checkForHomograph(firstPath, secondPath))
     {
@@ -210,5 +223,139 @@ int main()
     else
     {
         cout << "\nThe paths are not homographs" << endl;
+    }
+}
+
+/*********************************************************************
+*   test case for using the mirror image of the filepath
+*********************************************************************/
+void mirrorPath()
+{
+
+    string firstPath = "test.txt";
+    string secondPath = "test.txt";
+
+    if (checkForHomograph(firstPath, secondPath))
+    {
+        cout << "\nThe paths are homographs" << endl;
+    }
+    else
+    {
+        cout << "\nThe paths are not homographs" << endl;
+    }
+
+}
+
+/*********************************************************************
+*   Test case for a back middle path
+*********************************************************************/
+void backMiddlePath()
+{
+
+    string firstPath = "test.txt";
+    string secondPath = "../../week5labStack/../week5labStack/HomographDetector/test.txt";
+
+    if (checkForHomograph(firstPath, secondPath))
+    {
+        cout << "\nThe paths are homographs" << endl;
+    }
+    else
+    {
+        cout << "\nThe paths are not homographs" << endl;
+    }
+
+}
+
+/*********************************************************************
+*   test case for using the back keystroke on the filepath
+*********************************************************************/
+void backOneFolder()
+{
+
+    string firstPath = "test.txt";
+    string secondPath = "../HomographDetector/test.txt";
+
+    if (checkForHomograph(firstPath, secondPath))
+    {
+        cout << "\nThe paths are homographs" << endl;
+    }
+    else
+    {
+        cout << "\nThe paths are not homographs" << endl;
+    }
+
+}
+
+/*********************************************************************
+*   Test case for a broken path
+*********************************************************************/
+void brokenPath()
+{
+
+    string firstPath = "test.txt";
+    string secondPath = "/HomographDetector/test.txt";
+
+    if (checkForHomograph(firstPath, secondPath))
+    {
+        cout << "\nThe paths are homographs" << endl;
+    }
+    else
+    {
+        cout << "\nThe paths are not homographs" << endl;
+    }
+
+}
+
+/*********************************************************************
+*   main driver for the test cases.
+*********************************************************************/
+void alltest()
+{
+
+    // testing the .. method
+    //testing full path E: etc etc
+    // testing partial path etc etc without E:
+    fullPath();
+    backMiddlePath();
+    backOneFolder();
+    mirrorPath();
+    brokenPath();
+
+}
+
+/*********************************************************************
+*   Main driver of the program
+*********************************************************************/
+int main()
+{
+    string firstPath = "";
+    string secondPath = "";
+    string choiceString = "";
+
+    cout << "type 'alltest' for test cases, type 'manual' for standard program function" << endl;
+    getline(cin, choiceString);
+
+    if (choiceString == "alltest") 
+    {
+        alltest();
+    }
+    else
+    {
+        cout << "Enter the first path" << endl;
+        getline(cin, firstPath);
+
+        cout << "Enter the second path" << endl;
+        getline(cin, secondPath);
+
+        cout << "\n\n";
+
+        if (checkForHomograph(firstPath, secondPath))
+        {
+            cout << "\nThe paths are homographs" << endl;
+        }
+        else
+        {
+            cout << "\nThe paths are not homographs" << endl;
+        }
     }
 }
