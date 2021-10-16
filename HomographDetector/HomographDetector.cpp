@@ -2,8 +2,8 @@
 /*********************************************************************
 * Homograph detector
 * The user enters two file paths.
-* The program then determines if they are 
-* homographs (the same filepath but look different)
+* The program determines if they are homographs.
+* Homographs represent the same filepath but look different.
 *********************************************************************/
 
 #include <iostream>
