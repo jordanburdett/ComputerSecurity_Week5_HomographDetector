@@ -18,8 +18,9 @@ using namespace std::filesystem;
 
 
 /*********************************************************************
-* returns the full current working directory path.
-* Pass in a string vector to get each individual path element.
+*   getCurrentPath()
+*   Returns the full current working directory path.
+*   Pass in a string vector to get each individual path element.
 *********************************************************************/
 string getCurrentPath(stack<string>& pathVector)
 {
@@ -38,7 +39,8 @@ string getCurrentPath(stack<string>& pathVector)
 }
 
 /*********************************************************************
-* displays a string vector for debugging purposes.
+*   displayStringVector()
+*   Displays a string vector for debugging purposes.
 *********************************************************************/
 void displayStringVector(vector<string> stringVector)
 {
@@ -49,6 +51,7 @@ void displayStringVector(vector<string> stringVector)
 }
 
 /*********************************************************************
+* convertStringToPathVector()
 * takes a string and converts it to a vector
 *********************************************************************/
 vector<string> convertStringToPathVector(string path)
@@ -82,17 +85,15 @@ vector<string> convertStringToPathVector(string path)
         }
     }
 
-   
-    
     return outputVector;
 }
 
 /*********************************************************************
-*   creates a new stack reversed not entirely necessarily
+*   reverseStack()
+*   Creates a new stack reversed not entirely necessarily
 *   because we are just comparing strings to see if they are the same 
-*   but is nice for testing
+*   but is nice for testing.
 *********************************************************************/
-
 stack<string> reverseStack(stack<string> stringStack)
 {
     stack<string> reversedStack;
@@ -107,8 +108,9 @@ stack<string> reverseStack(stack<string> stringStack)
 }
 
 /*********************************************************************
-*   canonicilation function.
-*   Takes the vector<string> path and creates a canon string
+*   createCanonString()
+*   Canonicilation function.
+*   Takes the vector<string> path and creates a canon string.
 *********************************************************************/
 string createCanonString(vector<string> path)
 {
@@ -179,7 +181,8 @@ string createCanonString(vector<string> path)
 }
 
 /*********************************************************************
-*   checks if two strings are homograph paths.
+*   checkForHomograph()
+*   Checks if two strings are homograph paths.
 *********************************************************************/
 bool checkForHomograph(string firstPath, string secondPath)
 {
@@ -192,10 +195,10 @@ bool checkForHomograph(string firstPath, string secondPath)
     string firstPathCanon = createCanonString(firstPathVector);
     string secondPathCanon = createCanonString(secondPathVector);
     
-    cout << "results from compare: " << firstPathCanon.compare(secondPathCanon) << endl; // 0 - strings match
-
-    cout << "\nstring 1: " << firstPathCanon << endl;
-    cout << "string 2: " << secondPathCanon << endl;
+    // cout << "results from compare: " << firstPathCanon.compare(secondPathCanon) << "\n\n"; // 0 - strings match
+    cout << "TEST START:\n\n";
+    cout << "String 1: " << firstPathCanon << "\n\n";
+    cout << "String 2: " << secondPathCanon << "\n\n";
 
     if (firstPathCanon.compare(secondPathCanon) == 0)
     {
@@ -211,25 +214,28 @@ bool checkForHomograph(string firstPath, string secondPath)
 /*********************************************************************
 *   first test case, an entire path.
 *********************************************************************/
-void fullPath()
+string fullPath()
 {
     string firstPath = "test.txt";
     string secondPath = "E:/ComputerSecurityCS453/CSecurityLabs/week5labStack/HomographDetector/test.txt";
 
     if (checkForHomograph(firstPath, secondPath))
     {
-        cout << "\nThe paths are homographs" << endl;
+        return "The paths are homographs\n";
     }
     else
     {
-        cout << "\nThe paths are not homographs" << endl;
+        return "The paths are not homographs\n";
     }
+
+    return "";
+
 }
 
 /*********************************************************************
 *   test case for using the mirror image of the filepath
 *********************************************************************/
-void mirrorPath()
+string mirrorPath()
 {
 
     string firstPath = "test.txt";
@@ -237,19 +243,20 @@ void mirrorPath()
 
     if (checkForHomograph(firstPath, secondPath))
     {
-        cout << "\nThe paths are homographs" << endl;
+        return "The paths are homographs\n";
     }
     else
     {
-        cout << "\nThe paths are not homographs" << endl;
+        return "The paths are not homographs\n";
     }
 
+    return "";
 }
 
 /*********************************************************************
 *   Test case for a back middle path
 *********************************************************************/
-void backMiddlePath()
+string backMiddlePath()
 {
 
     string firstPath = "test.txt";
@@ -257,19 +264,20 @@ void backMiddlePath()
 
     if (checkForHomograph(firstPath, secondPath))
     {
-        cout << "\nThe paths are homographs" << endl;
+        return "The paths are homographs\n";
     }
     else
     {
-        cout << "\nThe paths are not homographs" << endl;
+        return "The paths are not homographs\n";
     }
 
+    return "";
 }
 
 /*********************************************************************
 *   test case for using the back keystroke on the filepath
 *********************************************************************/
-void backOneFolder()
+string backOneFolder()
 {
 
     string firstPath = "test.txt";
@@ -277,19 +285,21 @@ void backOneFolder()
 
     if (checkForHomograph(firstPath, secondPath))
     {
-        cout << "\nThe paths are homographs" << endl;
+        return "The paths are homographs\n";
     }
     else
     {
-        cout << "\nThe paths are not homographs" << endl;
+        return "The paths are not homographs\n";
     }
+
+    return "";
 
 }
 
 /*********************************************************************
 *   Test case for a broken path
 *********************************************************************/
-void brokenPath()
+string brokenPath()
 {
 
     string firstPath = "test.txt";
@@ -297,30 +307,228 @@ void brokenPath()
 
     if (checkForHomograph(firstPath, secondPath))
     {
-        cout << "\nThe paths are homographs" << endl;
+        return "The paths are homographs\n";
     }
     else
     {
-        cout << "\nThe paths are not homographs" << endl;
+        return "The paths are not homographs\n";
     }
+
+    return "";
+}
+
+/*********************************************************************
+*  displayMenu()
+*  Called by interact()
+*  Displays menu options.
+*********************************************************************/
+void displayMenu()
+{
+    cout << "Options:\n"
+        << "   A  Execute test cases\n"
+        << "   B  Execute manual test\n"
+        << "   Q  Quit\n";
+
+    return;
+}
+
+/*********************************************************************
+*  displayPrompt()
+*  Displays passed message.
+*********************************************************************/
+void displayPrompt(string message)
+{
+    cout << message << "\n";
+    return;
+}
+
+/*********************************************************************
+*  displayResult()
+*  Called by interact()
+*  Displays results.
+*********************************************************************/
+void displayResult(string message)
+{
+    cout << "TEST RESULT: ";
+    cout << message << "\n\n";
+    return;
+}
+
+/*********************************************************************
+*  displayError()
+*  Called by interact()
+*  Displays error message.
+*********************************************************************/
+void displayError(string message)
+{
+    cout << message << "\n\n";
+    return;
+}
+
+/*********************************************************************
+*  displayHeader()
+*  Called by interact()
+*  Displays app identifier.
+*********************************************************************/
+void displayHeader()
+{
+    cout << "\n************ CSE 453 - Week 5 - HOMOGRAPHS ************\n\n";
+    return;
+}
+
+/*********************************************************************
+*  clearScreen()
+*  Called by interact()
+*  Clears the screen.
+*********************************************************************/
+void clearScreen()
+{
+    if (system("CLS")) { system("clear"); }
+    return;
+}
+
+/*********************************************************************
+*   alltest()
+*   Main driver for the test cases.
+*   Tests the .. (double dot) method.
+*   Tests the full path E: Etc.
+*   Tests partial paths without E: Etc.
+*********************************************************************/
+void alltest()
+{
+    displayResult(fullPath());
+    displayResult(backMiddlePath());
+    displayResult(backOneFolder());
+    displayResult(mirrorPath());
+    displayResult(brokenPath());
+
+    return;
 
 }
 
 /*********************************************************************
-*   main driver for the test cases.
+*   testPaths()
+*   Compares two paths.
 *********************************************************************/
-void alltest()
+string testPaths()
 {
+    char path1[255] = "";
+    char path2[255] = "";
+    clearScreen();
+    displayHeader();
 
-    // testing the .. method
-    //testing full path E: etc etc
-    // testing partial path etc etc without E:
-    fullPath();
-    backMiddlePath();
-    backOneFolder();
-    mirrorPath();
-    brokenPath();
+    displayPrompt("Enter first path:");
+    cin.getline(path1, 255);
+    if (cin.fail()) {
+        cin.clear();
+        cin.ignore();
+    }
+    if (path1[0] == '\0') {
+        clearScreen();
+        displayHeader();
+        return "";
+    }
 
+    clearScreen();
+    displayHeader();
+    cout << "First path: " << path1 << "\n\n";
+    displayPrompt("Enter second path:");
+    cin.getline(path2, 255);
+    if (cin.fail()) {
+        cin.clear();
+        cin.ignore();
+    }
+    if (path2[0] == '\0') {
+        clearScreen();
+        displayHeader();
+        return "";
+    }
+
+    clearScreen();
+    displayHeader();
+    cout << "First path: " << path1 << "\n";
+    cout << "Second path: " << path2 << "\n\n";
+
+    // process input
+    if (checkForHomograph(path1, path2))
+    {
+        return "The paths are homographs";
+    }
+    else
+    {
+        return "The paths are not homographs";
+    }
+
+    return "";
+}
+
+/*********************************************************************
+*   interact(), until user types "Q".
+*   Called by main.
+*********************************************************************/
+void interact()
+{
+    clearScreen();
+    displayHeader();
+    displayMenu();
+
+    char answer[2] = "";
+    string returnString;
+    do
+    {
+        if (cin.fail()) // bad input
+        {
+            cin.clear();
+            cin.ignore();
+            continue;
+        }
+
+        cin.getline(answer, 2);
+        if (islower(answer[0])) { answer[0] = toupper(answer[0]); }
+        returnString.clear();
+        switch (answer[0])
+        {
+        case '\0': // no input
+            clearScreen();
+            displayHeader();
+            displayError("ERROR: Invalid command");
+            displayMenu();
+            break;
+
+        case 'A': // Execute test cases
+            clearScreen();
+            displayHeader();
+            alltest();
+            displayMenu();
+            break;
+
+        case 'B': // Execute manual test
+            clearScreen();
+            displayHeader();
+            returnString = testPaths();
+            if (returnString.empty()) {
+                displayError("ERROR: testPaths() returned empty");
+            }
+            else {
+                displayResult(returnString);
+            };
+            displayMenu();
+            break;
+
+        case 'Q': // Quit
+            clearScreen();
+            break;
+
+        default:
+            clearScreen();
+            displayHeader();
+            displayError("ERROR: Invalid command");
+            displayMenu();
+            break;
+        }
+    } while (answer[0] != 'Q' && answer[0] != 'q'); // Q = quit
+
+    return;
 }
 
 /*********************************************************************
@@ -328,34 +536,7 @@ void alltest()
 *********************************************************************/
 int main()
 {
-    string firstPath = "";
-    string secondPath = "";
-    string choiceString = "";
+    interact();
 
-    cout << "type 'alltest' for test cases, type 'manual' for standard program function" << endl;
-    getline(cin, choiceString);
-
-    if (choiceString == "alltest") 
-    {
-        alltest();
-    }
-    else
-    {
-        cout << "Enter the first path" << endl;
-        getline(cin, firstPath);
-
-        cout << "Enter the second path" << endl;
-        getline(cin, secondPath);
-
-        cout << "\n\n";
-
-        if (checkForHomograph(firstPath, secondPath))
-        {
-            cout << "\nThe paths are homographs" << endl;
-        }
-        else
-        {
-            cout << "\nThe paths are not homographs" << endl;
-        }
-    }
+    return 0;
 }
